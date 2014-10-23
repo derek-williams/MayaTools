@@ -1,0 +1,406 @@
+// set per particle attributes
+Leaf_ParticlesShape.scalePP = rand(.75,1.2);
+Leaf_ParticlesShape.rotatePP2 = rand(<<-5,0,-5>>,<<5,360,5>>);
+
+//declare variables
+float $pi = 3.1415827;
+
+float $totalArea[] = `polyEvaluate -wa Plant_Emitter_Geom`;
+float $treeArea = pow(treeRadius_Ctrl.scaleX, 2) * $pi;
+float $largeArea = pow(largeRadius_Ctrl.scaleX, 2) * $pi;
+float $medArea = pow(medRadius_Ctrl.scaleX,2) * $pi;
+
+float $largeRadius = largeRadius_Ctrl.scaleX;
+float $medRadius = medRadius_Ctrl.scaleX;
+float $treeRadius = treeRadius_Ctrl.scaleX;
+
+int $tree = ($totalArea[0]*.001076391) / $treeArea;
+int $large = ($totalArea[0]*.001076391) / $largeArea - $tree;
+int $med = ($totalArea[0]*.001076391) / $medArea - $large;
+
+int $special = 50;
+int $typeSize;
+int $type;
+int $plantCount;
+string $myObj;
+string $myGroup;
+string $plantList[];
+int $createYesNo = 1;
+string $plant;
+vector $tempPlant;
+int $failNumberTree = 50;
+int $failNumberLarge = 150;
+int $failNumberMed = 75;
+int $failMasterLimit = 10;
+int $failMaster;
+int $failCount;
+int $animRand;
+
+float $scale = Leaf_ParticlesShape.scalePP;
+vector $rotate = Leaf_ParticlesShape.rotatePP2;
+vector $particlePos = `xform -q -ws -t Leaf_Particles.pt[Leaf_ParticlesShape.particleId]`;
+
+//set initial conditions and create overall group
+if (`objExists Chia_Group` == 0)
+{
+	group -em -n Chia_Group;
+	group -em -n ChiaTree;
+	group -em -n ChiaLarge;
+	group -em -n ChiaMed;
+	group -em -n ChiaSpecial;
+	group -em -n ChiaSmall;
+	parent ChiaTree Chia_Group;
+	parent ChiaLarge Chia_Group;
+	parent ChiaMed Chia_Group;
+	parent ChiaSpecial Chia_Group;
+	parent ChiaSmall Chia_Group;
+	clear $plantList;
+	$plantCount = 0;
+	print ("Tree: " + $tree + "\n");
+	print ("Large: " + $large + "\n");
+	print ("Medium: " + $med + "\n");
+}
+
+if (`objExists treeLayer` == 0)
+{
+	createDisplayLayer -e -n "treeLayer";
+	setAttr treeLayer.color 4;
+}
+
+if (`objExists largeLayer` == 0)
+{
+	createDisplayLayer -e -n "largeLayer";
+	setAttr largeLayer.color 6;
+}
+
+if (`objExists medLayer` == 0)
+{
+	createDisplayLayer -e -n "medLayer";
+	setAttr medLayer.color 7;
+}
+
+if (`objExists smallLayer` == 0)
+{
+	createDisplayLayer -e -n "smallLayer";
+	setAttr smallLayer.color 9;
+}
+
+if (`objExists specialLayer` == 0)
+{
+	createDisplayLayer -e -n "specialLayer";
+	setAttr specialLayer.color 8;
+}
+
+
+//set plant size type and subtype
+if ($plantCount < $tree)
+{
+	$typeSize = 0;
+	$type = rand(1,6);
+}
+else if ($plantCount < ($large + $tree))
+{
+	$typeSize = 1;
+	$type = rand(1,9);
+}
+else if ($plantCount < ($large + $med + $tree))
+{
+	$typeSize = 2;
+	$type = rand(1,5);
+}
+else if ($plantCount < ($large + $med + $special + $tree))
+{
+	$typeSize = 3;
+	$type = rand(1,4);
+}
+else
+{
+	$typeSize = 4;
+	$type = rand(1,5);
+}
+
+//check for collisions on creation
+switch ($typeSize)
+{
+	case 0:
+		for ($plant in $plantList)
+		{
+			//run through a loop checking proximity with previously made tree plants
+			$tempPlant = `objectCenter -gl $plant`;
+			float $length = `mag ($tempPlant-$particlePos)`;
+			if ($failMaster > $failMasterLimit)
+			{
+				$createYesNo = 0;
+				break;
+			}
+
+			if ($length > (2 * $treeRadius))
+			{
+				$createYesNo = 1;
+			}
+			else 
+			{
+				$createYesNo = 0;
+				$failCount += 1;
+				break;
+			}
+			if ($failCount > $failNumberTree)
+			{
+				$plantCount += 1;
+				$failMaster += 1;
+				$failCount = 0;
+			}
+		}
+		break;
+	case 1:
+		for ($plant in $plantList)
+		{
+			//run through a loop checking proximity with previously made large plants
+			$tempPlant = `objectCenter -gl $plant`;
+			float $length = `mag ($tempPlant-$particlePos)`;
+			if ($failMaster > $failMasterLimit)
+			{
+				$createYesNo = 0;
+				break;
+			}
+
+			if ($length > (2 * $largeRadius))
+			{
+				$createYesNo = 1;
+			}
+			else 
+			{
+				$createYesNo = 0;
+				$failCount += 1;
+				break;
+			}
+			if ($failCount > $failNumberLarge)
+			{
+				$plantCount += 1;
+				$failCount = 0;
+				$failMaster += 1;
+			}
+		}
+		break;
+	case 2:
+		for ($plant in $plantList)
+		{
+			//run through a loop checking proximity with previously made medium plants
+			$tempPlant = `objectCenter -gl $plant`;
+			float $length = `mag ($tempPlant-$particlePos)`;
+			if ($failMaster > $failMasterLimit)
+			{
+				$createYesNo = 0;
+				break;
+			}
+
+			if ($length > (2 * $medRadius))
+			{
+				$createYesNo = 1;
+			}
+			else
+			{
+				$createYesNo = 0;
+				$failCount += 1;
+				break;
+			}
+			if ($failCount > $failNumberMed)
+			{
+				$plantCount += 1;
+				$failCount = 0;
+				$failMaster += 1;
+			}
+		}
+		break;
+	default:
+		$createYesNo = 1;
+		break;
+}
+
+//only create plants if able
+if ($createYesNo == 1)
+{
+	//create plants based on type
+	switch ($typeSize)
+	{
+		case 0:
+			$myObj = ("Tree_" + ($plantCount));
+			$myGroup = ($myObj + "_Group");
+			group -em -n $myGroup;
+			$scale = rand(.9,1.1);
+			$rotate = rand(<<-10,0,-10>>,<<10,360,10>>);
+			switch ($type)
+			{
+				case 1:
+					instance -n $myObj palmTree_Base;
+					break;
+				case 2:
+					instance -n $myObj twigTree_Base;
+					break;
+				case 3:
+					instance -n $myObj bananaTree_Base;
+					break;
+				case 4:
+					instance -n $myObj cassiaTree_Base;
+					break; 
+				case 5:
+					instance -n $myObj Rock_Base;
+					break;
+				case 6:
+					instance -n $myObj plainTree_Base;
+					break;
+			}
+			circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1 -n ($myObj + "_Circle");
+			parent ($myObj + "_Circle") $myObj;
+			parent $myObj $myGroup;
+			xform -ws -s (treeRadius_Ctrl.scaleX) (treeRadius_Ctrl.scaleX) (treeRadius_Ctrl.scaleX) ($myObj + "_Circle");
+			editDisplayLayerMembers treeLayer $myGroup;
+			parent $myGroup ChiaTree;
+			break;
+		case 1:
+			$myObj = ("LargePlant_" + ($plantCount));
+			$myGroup = ($myObj + "_Group");
+			group -em -n $myGroup;
+			$scale = rand(.9,1.2);
+			switch ($type)
+			{
+				case 1:
+					instance -n $myObj lowPalms_Base;
+					break;
+				case 2:
+					instance -n $myObj BlueishLeaves_Base;
+					break;
+				case 3:
+				case 4:
+					$animRand = rand(0,5);
+					instance -n $myObj ("medBush_anim" + $animRand + "_Base");
+					break;
+				case 5:
+				case 6:
+					$animRand = rand(0,3);
+					instance -n $myObj ("pointyBushes_anim" + $animRand + "_Base");
+					break;
+				case 7:
+					instance -n $myObj largeLeaves_Base;
+					break;
+				case 8:
+					instance -n $myObj largeClump_Base;
+					break;
+				case 9:
+					instance -n $myObj yellowLeaves_Base;
+					break;
+			}
+			circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1 -n ($myObj + "_Circle");
+			parent ($myObj + "_Circle") $myGroup;
+			parent $myObj $myGroup;
+			xform -ws -s (largeRadius_Ctrl.scaleX) (largeRadius_Ctrl.scaleX) (largeRadius_Ctrl.scaleX) ($myObj + "_Circle");
+			editDisplayLayerMembers largeLayer $myGroup;
+			parent $myGroup ChiaLarge;
+			break;
+		case 2:
+			$myObj = ("MedPlant_" + ($plantCount));
+			$myGroup = ($myObj + "_Group");
+			group -em -n $myGroup;
+			$scale = rand(.6,1.1); 
+			switch ($type)
+			{
+				case 1:
+					instance -n $myObj fuzzyLeaf_Base;
+					break;
+				case 2:
+					instance -n $myObj smallFern_Base;
+					break;
+				case 3:
+					instance -n $myObj grass_Base;
+					break;
+				case 4:
+					instance -n $myObj leafyBush_Base;
+					break;
+				case 5:
+					instance -n $myObj withGreenLeafs_Bush;
+					break;
+			}
+			circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1 -d 3 -ut 0 -tol 0 -s 8 -ch 1 -n ($myObj + "_Circle");
+			parent ($myObj + "_Circle") $myObj;
+			parent $myObj $myGroup;
+			xform -ws -s (medRadius_Ctrl.scaleX) (medRadius_Ctrl.scaleX) (medRadius_Ctrl.scaleX) ($myObj + "_Circle");
+			editDisplayLayerMembers medLayer $myGroup;
+			parent $myGroup ChiaMed;
+			break;
+		case 3:
+			$myObj = ("SpecialPlant_" + ($plantCount));
+			$myGroup = ($myObj + "_Group");
+			group -em -n $myGroup;
+			switch ($type)
+			{
+				case 1:
+				case 2:
+					instance -n $myObj RainbowPlants_Base;
+					break;
+				case 3:
+					instance -n $myObj Flowers1_Base;
+					break;
+				case 4:
+					instance -n $myObj Flowers2_Base;
+					break;
+			}
+			
+			parent $myObj $myGroup;
+			$rotate = rand(<<-30,0,-30>>,<<30,360,30>>);
+			editDisplayLayerMembers specialLayer $myGroup;
+			parent $myGroup ChiaSpecial;
+			break;
+		case 4:
+			$myGroup = ("SmallPlant_" + ($plantCount));
+			$rotate = rand(<<0,0,0>>,<<0,360,0>>);
+			switch ($type)
+			{
+				case 1:
+				case 2:
+				case 3:
+					duplicate -n $myGroup smallScrub_Base;
+					break;
+				case 4:
+					duplicate -n $myGroup Flower_Base;
+					break;
+				case 5:
+					duplicate -n $myGroup resishPlants_Base;
+					break;
+			}
+			editDisplayLayerMembers smallLayer $myGroup;
+			parent $myGroup ChiaSmall;
+			break;
+	}	
+	
+	//move into place and apply any rotations
+	xform -ws -a -t ($particlePos.x) ($particlePos.y) ($particlePos.z) -s $scale $scale $scale $myGroup;
+	xform -ws -r -ro ($rotate.x) ($rotate.y) ($rotate.z) $myGroup;
+	makeIdentity -apply 1 -t 1 -s 1 -r 1 $myGroup;	
+	if ($typeSize == 4 || $typeSize == 2 || $typeSize == 1)
+		delete `normalConstraint -aim 0 1 0 Plant_Emitter_Geom $myGroup`;
+	makeIdentity -apply 1 -t 1 -s 1 -r 1 $myGroup;
+
+	//add to plant list
+	$plantList[`size($plantList)`] = $myObj;
+
+	//update for proximity check
+	$plantCount += 1;
+	$failMaster = 0;
+	$createYesNo = 0;
+	$failCount = 0;
+}
+if ($failMaster > $failMasterLimit)
+{
+	if ($typeSize == 1)
+	{
+		$plantCount += ($tree + $large - $plantCount);
+		$failMaster = 0;
+	}
+	else if ($typeSize == 2)
+	{
+		$plantCount += ($tree + $large + $med - $plantCount);
+		$failMaster = 0;
+	}
+}
+if ($plantCount == ($med + $large + $tree))
+	clear $plantList;
