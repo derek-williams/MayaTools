@@ -1,0 +1,147 @@
+/*
+    Script:     MakeLowPoly.mel
+    Version:    1.0
+    Author:     bhaveshsuthar	
+    Website:    http://www.aswaforce.com
+
+    Descr:      Here is the script to make Low polygon modeling from high polygon by Deleting loops and Collapsing Rings. You can directly select Loop, Ring, Alternate2 Loop and Ring, Alternate3 Loop and Ring, Alternate4 Loop and Ring, Alternate5 Loop and Ring selection commands are there in the script. All commands are available directly into Maya. I just pulled them out into my own little window.
+Hope you all modeler will love this script. 
+
+	USE: Select single edge and click on any button
+
+*/
+
+///////////////////////////////////////////////////////////////////
+global proc MakeLowPoly()
+{
+
+string $loopSelection[];
+
+
+if (`window -exists selectEveryOther`)
+{deleteUI -wnd selectEveryOther;}
+
+window -t "Make it Low Poly" -rtf true selectEveryOther;
+
+//rowLayout -numberOfColumns 4 ;
+rowColumnLayout -numberOfColumns 6
+        -columnWidth 1 100
+        -columnWidth 2 100
+        -columnWidth 3 30
+        -columnWidth 4 30
+        -columnWidth 5 30
+        -columnWidth 6 30;
+        
+separator;
+text -label "LOOP";
+separator;
+separator;
+separator;
+separator;
+
+
+button -label "Loop Selection" -c makeLoopSelection;
+button -label "Delete" -c DoDelete;
+button -label "Alt2" -c AltLoop2;
+button -label "Alt3" -c AltLoop3;
+button -label "Alt4" -c AltLoop4;
+button -label "Alt5" -c AltLoop5;
+
+separator;
+text -label "RING";
+separator;
+separator;
+separator;
+separator;
+
+button -label "Ring Selection" -c RingSelect;
+button -label "Collapse" -c CPS;
+button -label "Alt2" -c AltRing2;
+button -label "Alt3" -c AltRing3;
+button -label "Alt4" -c AltRing4;
+button -label "Alt5" -c AltRing5;
+
+
+showWindow selectEveryOther;
+
+}
+
+global proc makeLoopSelection () {
+
+//select loop and add to an array
+
+SelectContiguousEdges -order 1;
+
+print "make loop selection";
+
+$loopSelection = `ls -sl -fl`;
+
+print $loopSelection;
+
+}
+
+
+
+global proc DoDelete()
+{
+string $selectedObject[] = `ls -sl -o`;
+polyDelEdge -cv true;
+}
+
+
+
+global proc AltLoop2()
+{
+polySelectEdgesEveryN "edgeLoop" 2;
+}
+
+
+global proc AltLoop3()
+{
+polySelectEdgesEveryN "edgeLoop" 3;
+}
+
+global proc AltLoop4()
+{
+polySelectEdgesEveryN "edgeLoop" 4;
+}
+
+global proc AltLoop5()
+{
+polySelectEdgesEveryN "edgeLoop" 5;
+}
+
+
+
+global proc RingSelect()
+{
+polySelectEdgesEveryN "edgeRing" 1;
+}
+
+
+global proc AltRing2()
+{
+polySelectEdgesEveryN "edgeRing" 2;
+}
+
+
+global proc AltRing3()
+{
+polySelectEdgesEveryN "edgeRing" 3;
+}
+
+global proc AltRing4()
+{
+polySelectEdgesEveryN "edgeRing" 4;
+}
+
+global proc AltRing5()
+{
+polySelectEdgesEveryN "edgeRing" 5;
+}
+
+
+global proc CPS()
+{
+polyCollapseEdge -ch 1;
+}

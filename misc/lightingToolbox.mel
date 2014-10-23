@@ -1,0 +1,963 @@
+string $versionNum = "LightingToolBox_RG_1.7";
+
+
+/////procs////////////////////////////////////////
+global proc addSubDivAttr()
+    {
+        string $shapes[] = `ls -type "shape"`;
+        select $shapes;
+        execRmanMenuItem("SubdivAttr");
+    }
+    
+
+//////////////////////////////////////////////////////////
+
+global proc importLightRig(string $importAct, string $importType)
+{
+        int $importActInfo = `radioButtonGrp -q -select $importAct`;
+        int $importTypeInfo = `radioButtonGrp -q -select $importType`;
+        if (($importActInfo == 0) || ($importTypeInfo == 0))
+        {
+        print "Need MORE Data!";
+        }
+         if (($importActInfo == 1) && ($importTypeInfo == 1))
+        {
+        print "No such light rig exists..";
+        }
+        
+        if (($importActInfo == 1) && ($importTypeInfo == 2))
+        {
+        file -r -type "mayaAscii" -gl -loadReferenceDepth "all" -namespace "A1_PreDawn_Light_Rig_ENVIRONMENT" -options "v=0" "W:/Production/Lighting/Light_Rig_REF/scenes/A1_PreDawn_Light_Rig_ENVIRONMENT.ma";
+        }
+        if (($importActInfo == 1) && ($importTypeInfo == 3))
+        {
+        file -r -type "mayaAscii" -gl -loadReferenceDepth "all" -namespace "A1_PreDawn_Light_Rig_CHARACTERS.ma" -options "v=0" "W:/Production/Lighting/Light_Rig_REF/scenes/A1_PreDawn_Light_Rig_CHARACTERS.ma";
+        }        
+        
+           if (($importActInfo == 2) && ($importTypeInfo == 1))
+        {
+        file -r -type "mayaAscii" -gl -loadReferenceDepth "all" -namespace "A2_Afternoon_Light_Rig_CHARACTERS_SKIN.ma" -options "v=0" "W:/Production/Lighting/Light_Rig_REF/scenes/A2_Afternoon_Light_Rig_CHARACTERS_SKIN.ma";
+      
+        } 
+       
+       
+       
+          if (($importActInfo == 2) && ($importTypeInfo == 2))
+        {
+        file -r -type "mayaAscii" -gl -loadReferenceDepth "all" -namespace "A2_Afternoon_Light_Rig_CHARACTERS_NO_SKIN.ma" -options "v=0" "W:/Production/Lighting/Light_Rig_REF/scenes/A2_Afternoon_Light_Rig_CHARACTERS_NO_SKIN.ma";
+      
+        }
+          if (($importActInfo == 2) && ($importTypeInfo == 3))
+        {
+        print "No such light rig exists..";
+        }
+        
+           if (($importActInfo == 3) && ($importTypeInfo == 1))
+        {
+        print "No such light rig exists..";
+        }
+        
+             if (($importActInfo == 3) && ($importTypeInfo == 2))
+        {
+         file -r -type "mayaAscii" -gl -loadReferenceDepth "all" -namespace "A3_Dawn_Light_Rig_ENVIRONMENT.ma" -options "v=0" "W:/Production/Lighting/Light_Rig_REF/scenes/A3_Dawn_Light_Rig_ENVIRONMENT.ma";
+      
+        }
+        
+               if (($importActInfo == 3) && ($importTypeInfo == 3))
+        {
+         file -r -type "mayaAscii" -gl -loadReferenceDepth "all" -namespace "A3_Dawn_Light_Rig_CHARACTERS.ma" -options "v=0" "W:/Production/Lighting/Light_Rig_REF/scenes/A3_Dawn_Light_Rig_CHARACTERS.ma";
+      
+        }
+        
+        
+        
+        
+}
+
+//create and apply red material///////////////////////////////
+
+global proc redShader(){
+int $shaderTest = `objExists "Red_Masking_Shader"` ;  
+string $sel[] = `ls -sl -type transform`;
+if($shaderTest == 0) {  
+
+string $redShader = `shadingNode -asShader lambert -name "Red_Masking_Shader"`;
+setAttr ($redShader + ".color") -type double3 1 0 0 ;
+setAttr ($redShader + ".incandescence") -type double3 1 0 0 ;
+
+string $redShaderGroup = "Red_Masking_Group";
+sets -renderable true -noSurfaceShader true -empty -name $redShaderGroup;
+defaultNavigation -connectToExisting -source $redShader -destination $redShaderGroup;      
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "Red_Masking_Group";
+}
+}
+
+//create and apply blue material
+
+global proc blueShader(){
+int $shaderTest = `objExists "Blue_Masking_Shader"` ;  
+string $sel[] = `ls -sl`;
+if($shaderTest == 0) {  
+
+string $blueShader = `shadingNode -asShader lambert -name "Blue_Masking_Shader"`;
+setAttr ($blueShader + ".color") -type double3 0 0 1 ;
+setAttr ($blueShader + ".incandescence") -type double3 0 0 1 ;
+
+string $blueShaderGroup = "Blue_Masking_Group";
+sets -renderable true -noSurfaceShader true -empty -name $blueShaderGroup;
+defaultNavigation -connectToExisting -source $blueShader -destination $blueShaderGroup;      
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "Blue_Masking_Group" $obj;
+}
+}
+
+//create and apply green material
+
+global proc greenShader(){
+int $shaderTest = `objExists "Green_Masking_Shader"` ;  
+string $sel[] = `ls -sl -type transform`;
+if($shaderTest == 0) {  
+
+string $greenShader = `shadingNode -asShader lambert -name "Green_Masking_Shader"`;
+setAttr ($greenShader + ".color") -type double3 0 1 0 ;
+setAttr ($greenShader + ".incandescence") -type double3 0 1 0 ;
+
+string $greenShaderGroup = "Green_Masking_Group";
+sets -renderable true -noSurfaceShader true -empty -name $greenShaderGroup;
+defaultNavigation -connectToExisting -source $greenShader -destination $greenShaderGroup;      
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "Green_Masking_Group" $obj;
+}
+}
+
+global proc blackShader(){
+int $shaderTest = `objExists "Black_Masking_Shader"` ;  
+string $sel[] = `ls -sl -type transform`;
+if($shaderTest == 0) {  
+
+string $blackShader = `shadingNode -asShader lambert -name "Black_Masking_Shader"`;
+setAttr ($blackShader + ".color") -type double3 0 0 0 ;
+setAttr ($blackShader + ".incandescence") -type double3 0 0 0 ;
+
+string $blackShaderGroup = "Black_Masking_Group";
+sets -renderable true -noSurfaceShader true -empty -name $blackShaderGroup;
+defaultNavigation -connectToExisting -source $blackShader -destination $blackShaderGroup;      
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "Black_Masking_Group" $obj;
+}
+}
+
+
+
+//create and apply white material/////////////////////////////////
+
+global proc whiteShader(){
+int $shaderTest = `objExists "White_Masking_Shader"` ;  
+string $sel[] = `ls -sl -type transform`;
+if($shaderTest == 0) {  
+
+string $whiteShader = `shadingNode -asShader lambert -name "White_Masking_Shader"`;
+setAttr ($whiteShader + ".color") -type double3 1 1 1 ;
+setAttr ($whiteShader + ".incandescence") -type double3 1 1 1 ;
+
+string $whiteShaderGroup = "White_Shading_Group";
+sets -renderable true -noSurfaceShader true -empty -name $whiteShaderGroup;
+defaultNavigation -connectToExisting -source $whiteShader -destination $whiteShaderGroup;      
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "White_Shading_Group" $obj;
+}
+}
+
+
+
+
+
+//hide all lights//////////////////////////////////////////
+global proc string[] hideLights()
+{
+string $lights[]= `ls -type light `;
+string $ibl[]= `ls "*RenderManEnvLightShape*" `;
+string $ibl_w_namespace[]= `ls "*:RenderManEnvLight*" `;
+string $hiddenStuff[] = `hide  -rh $lights $ibl $ibl_w_namespace`;
+return $hiddenStuff;
+}
+
+//unhide lights//////////////////////////////////////////
+global proc unhideLights()
+{
+
+string $lights[]= `ls -type light `;
+string $ibl[]= `ls "*RenderManEnvLightShape*" `;
+string $ibl_w_namespace[]= `ls "*:RenderManEnvLight*" `;
+showHidden  $lights $ibl $ibl_w_namespace;
+
+}
+
+global proc zDepth(){
+//user selects all mesas then  ground
+    string $userSel[] = `ls -sl`;
+
+    int $groundArrayIdentifier = (size($userSel)-1);
+    string $ground = $userSel[$groundArrayIdentifier];
+    int $lastMesaSel = (size($userSel)-2);
+   
+//create zdepth material
+    
+    int $shaderTest = `objExists "ZDepthMesa"` ;  
+
+    if($shaderTest == 0) {  
+    
+    string $zDepthShader = `shadingNode -asShader lambert -name "ZDepthMesa"`;
+    setAttr ($zDepthShader + ".color") -type double3 0 0 0 ;
+    
+    
+    string $zDepthShaderGroup = "ZDepth_Mesa_Shader_Group";
+    sets -renderable true -noSurfaceShader true -empty -name $zDepthShaderGroup;
+    defaultNavigation -connectToExisting -source $zDepthShader -destination $zDepthShaderGroup;      
+    }
+
+//apply zDepth Material to all objects selected
+
+
+    for ($obj in $userSel) {
+    select $obj;
+    sets -e -nw -forceElement "ZDepth_Mesa_Shader_Group" $obj;
+    }
+    
+    
+//find loaction of camera 1
+    
+    int $correctCam = 0;
+    string $perspCameras[] = `listCameras -p`;
+    for ($i =0; $i < size($perspCameras); $i++ )
+    {
+        $isRenderable = getAttr ($perspCameras[$i] + ".renderable");
+        if ( $isRenderable == 1 )
+             {
+             $correctCam = $i;
+             }
+    }
+    string $camera = $perspCameras[$correctCam];
+
+// find the position of camrea 1 and the last mesa
+    float $cameraLocation[3] =`xform -q -ws -rp $camera`; 
+    float $lastMesaLocation[3] =  `xform -q -ws -rp $userSel[$lastMesaSel]`; 
+//create a custom loactor used as a simple GUI, and a node to analyze distance
+
+    string $mesaZdepthLocator[] = `spaceLocator -n "Mesa_Distance_Locator" `;
+    xform -ws -t $lastMesaLocation[0] $lastMesaLocation[1] $lastMesaLocation[2];
+    scale 10000 10000 10000 $mesaZdepthLocator[0];
+    string $sel[2];
+    $sel[0] = $mesaZdepthLocator[0];
+    $sel[1] = $camera;
+    string $mesaDis = `shadingNode -asUtility distanceBetween -n "zDepthDistanceNode"`;
+    connectAttr ($sel[0] + ".worldMatrix") ($mesaDis + ".inMatrix1");
+    connectAttr ($sel[1] + ".worldMatrix") ($mesaDis + ".inMatrix2");
+    connectAttr ($sel[0] + ".rotatePivotTranslate") ($mesaDis+ ".point1");
+    connectAttr ($sel[1] + ".rotatePivotTranslate") ($mesaDis + ".point2");
+   
+
+///////////////////////////////////////////////////////////////////
+
+//create associated nodes
+    string $zDRemapMesa = `shadingNode -asUtility remapValue -n "ZDepth_Mesa_Remap_Value"`;
+    string $zDSetRangeMesa = `shadingNode -asUtility setRange -n "ZDepth_Mesa_Set_Range"`;
+    string $zDSetReverseMesa = `shadingNode -asUtility reverse -n "ZDepth_Mesa_Reverse"`;
+    string $zDSetSamplerMesa = `shadingNode -asUtility samplerInfo -n "ZDepth_Mesa_SamplerInfo"`;
+    string $zDMultDivMesa = `shadingNode -asUtility multiplyDivide -n "ZDepth_Mesa_MultDiv"`;
+
+
+
+//connect nodes and set attributes
+    connectAttr -force ($zDRemapMesa + ".outColor") ZDepthMesa.incandescence;
+    connectAttr -force ($zDSetRangeMesa + ".outValue.outValueZ") ( $zDRemapMesa + ".inputValue");
+    connectAttr -force ($zDSetReverseMesa + ".outputZ") ($zDSetRangeMesa + ".valueZ"); 
+    connectAttr -force ($zDSetSamplerMesa + ".pointCameraZ") ($zDSetReverseMesa + ".inputZ"); 
+    connectAttr -force ($zDMultDivMesa + ".outputZ") ($zDSetRangeMesa + ".oldMaxZ");
+    connectAttr -force ($mesaDis + ".distance") ($zDMultDivMesa + ".input1Z");
+    
+    
+    setAttr ($zDRemapMesa + ".color[0].color_Interp") 2;
+    setAttr ($zDSetRangeMesa + ".maxZ") 1;
+    setAttr ($zDSetRangeMesa + ".oldMinZ") 0.001;
+    setAttr ($zDMultDivMesa + ".operation") 2;
+    setAttr ($zDMultDivMesa + ".input2Z") 3;
+//add an attribute and connection to show distance from camera 
+    addAttr -ln "Distance_from_Camera"  -k 1 -at double $mesaZdepthLocator[0];    
+    connectAttr -f ($mesaDis + ".distance") ($mesaZdepthLocator[0] + ".Distance_from_Camera");
+
+    setAttr -lock true -keyable false -channelBox false ($mesaZdepthLocator[0] + ".ty");
+    setAttr -lock true -keyable false -channelBox false ($mesaZdepthLocator[0] + ".rx");
+    setAttr -lock true -keyable false -channelBox false ($mesaZdepthLocator[0] + ".ry");
+    setAttr -lock true -keyable false -channelBox false ($mesaZdepthLocator[0] + ".rz");
+    //setAttr -keyable false -channelBox false ($mesaZdepthLocator[0] + ".sx");
+    //setAttr -keyable false -channelBox false ($mesaZdepthLocator[0] + ".sy");
+    //setAttr -keyable false -channelBox false ($mesaZdepthLocator[0] + ".sz");
+    setAttr -keyable false -channelBox false ($mesaZdepthLocator[0] + ".v");
+    setAttr ($mesaZdepthLocator[0] + ".overrideEnabled") 1;
+    setAttr ($mesaZdepthLocator[0] + ".overrideColor") 4;
+
+//do it again for ground ...should be a procedure, but im feeling lazy..
+    
+    int $shaderTest = `objExists "ZDepthGround"` ;  
+    if($shaderTest == 0) {  
+    string $zDepthShader = `shadingNode -asShader lambert -name "ZDepthGround"`;
+    setAttr ($zDepthShader + ".color") -type double3 0 0 0 ;
+    string $zDepthShaderGroup = "ZDepth_Ground_Shader_Group";
+    sets -renderable true -noSurfaceShader true -empty -name $zDepthShaderGroup;
+    defaultNavigation -connectToExisting -source $zDepthShader -destination $zDepthShaderGroup;      
+    }
+    select $ground;
+    sets -e -nw -forceElement ZDepth_Ground_Shader_Group;
+	 string $groundZdepthLocator[] = `circle -c 0 0 0 -nr 0 1 0 -sw 360 -r 1.5 -d 3 -ut 0 -tol 0.01 -s 8 -ch 0 -n "Ground_Distance_Locator"`;
+	 string $arrows[] ;
+	 $arrows[0] = `curve -d 1 -p 1.75625 0 0.115973 -p 1.75625 0 -0.170979 -p 2.114939 0 -0.170979 -p 2.114939 0 -0.314454 -p 2.473628 0 -0.0275029 -p 2.114939 0 0.259448 -p 2.114939 0 0.115973 -p 1.75625 0 0.115973 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n helperArrow1` ;
+         setAttr ($arrows[0] + ".overrideEnabled") 1 ;
+         setAttr ($arrows[0] + ".overrideDisplayType") 2 ;
+         pickWalk -d down ; TemplateObject ;
+	 $arrows[1] = `curve -d 1 -p 0.143476 0 -1.783753 -p 0.143476 0 -2.142442 -p 0.286951 0 -2.142442 -p 0 0 -2.501131 -p -0.286951 0 -2.142442 -p -0.143476 0 -2.142442 -p -0.143476 0 -1.783753 -p 0.143476 0 -1.783753 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n helperArrow2` ;
+         setAttr ($arrows[1] + ".overrideEnabled") 1 ;
+         setAttr ($arrows[1] + ".overrideDisplayType") 2 ;
+         pickWalk -d down ; TemplateObject ;
+	 $arrows[2] = `curve -d 1 -p -1.75625 0 -0.170979 -p -2.114939 0 -0.170979 -p -2.114939 0 -0.314454 -p -2.473628 0 -0.0275029 -p -2.114939 0 0.259448 -p -2.114939 0 0.115973 -p -1.75625 0 0.115973 -p -1.75625 0 -0.170979 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n helperArrow3`;
+         setAttr ($arrows[2] + ".overrideEnabled") 1 ;
+         setAttr ($arrows[2] + ".overrideDisplayType") 2 ;
+         pickWalk -d down ; TemplateObject ;
+	 $arrows[3] = `curve -d 1 -p -0.143476 0 1.728747 -p -0.143476 0 2.087436 -p -0.286951 0 2.087436 -p 0 0 2.446125 -p 0.286951 0 2.087436 -p 0.143476 0 2.087436 -p 0.143476 0 1.728747 -p -0.143476 0 1.728747 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -n helperArrow4`;
+         setAttr ($arrows[3] + ".overrideEnabled") 1 ;
+         setAttr ($arrows[3] + ".overrideDisplayType") 2 ;
+         pickWalk -d down ; TemplateObject ;
+	 string $arrowGRP = `group -n helperArrowsGRP -p $groundZdepthLocator $arrows[0] $arrows[1] $arrows[2] $arrows[3]`;
+    xform -ws -t $lastMesaLocation[0] $lastMesaLocation[1] $lastMesaLocation[2] $groundZdepthLocator[0];
+    scale 10000 10000 10000 $groundZdepthLocator[0];
+    string $sel[2];
+    $sel[0] = $groundZdepthLocator[0];
+    $sel[1] = $camera;
+    string $groundDis = `shadingNode -asUtility distanceBetween -n "zDepthDistanceNode"`;
+    connectAttr ($sel[0] + ".worldMatrix") ($groundDis + ".inMatrix1");
+    connectAttr ($sel[1] + ".worldMatrix") ($groundDis + ".inMatrix2");
+    connectAttr ($sel[0] + ".rotatePivotTranslate") ($groundDis+ ".point1");
+    connectAttr ($sel[1] + ".rotatePivotTranslate") ($groundDis + ".point2");
+    string $zDRemapGround = `shadingNode -asUtility remapValue -n "ZDepth_Ground_Remap_Value"`;
+    string $zDSetRangeGround = `shadingNode -asUtility setRange -n "ZDepth_Ground_Set_Range"`;
+    string $zDSetReverseGround = `shadingNode -asUtility reverse -n "ZDepth_Ground_Reverse"`;
+    string $zDSetSamplerGround = `shadingNode -asUtility samplerInfo -n "ZDepth_Ground_SamplerInfo"`;
+    string $zDMultDivGround = `shadingNode -asUtility multiplyDivide -n "ZDepth_Ground_MultDiv"`;
+    connectAttr -force ($zDRemapGround + ".outColor") ZDepthGround.incandescence;
+    connectAttr -force ($zDSetRangeGround + ".outValue.outValueZ") ( $zDRemapGround + ".inputValue");
+    connectAttr -force ($zDSetReverseGround + ".outputZ") ($zDSetRangeGround + ".valueZ"); 
+    connectAttr -force ($zDSetSamplerGround + ".pointCameraZ") ($zDSetReverseGround + ".inputZ"); 
+    connectAttr -force ($zDMultDivGround + ".outputZ") ($zDSetRangeGround + ".oldMaxZ");
+    connectAttr -force ($groundDis + ".distance") ($zDMultDivGround + ".input1Z");
+    setAttr ($zDRemapGround + ".color[0].color_Interp") 2;
+    setAttr ($zDSetRangeGround + ".maxZ") 1;
+    setAttr ($zDSetRangeGround + ".oldMinZ") 0.001;
+    setAttr ($zDMultDivGround + ".operation") 2;
+    setAttr ($zDMultDivGround + ".input2Z") 3;
+    addAttr -ln "Distance_from_Camera"  -k 1 -at double $groundZdepthLocator[0];    
+    connectAttr -f ($groundDis + ".distance") ($groundZdepthLocator[0] + ".Distance_from_Camera");
+    setAttr -lock true -keyable false -channelBox false ($groundZdepthLocator[0] + ".ty");
+    setAttr -lock true -keyable false -channelBox false ($groundZdepthLocator[0] + ".rx");
+    setAttr -lock true -keyable false -channelBox false ($groundZdepthLocator[0] + ".ry");
+    setAttr -lock true -keyable false -channelBox false ($groundZdepthLocator[0] + ".rz");
+    //setAttr -keyable false -channelBox false ($groundZdepthLocator[0] + ".sx");
+    //setAttr -keyable false -channelBox false ($groundZdepthLocator[0] + ".sy");
+    //setAttr -keyable false -channelBox false ($groundZdepthLocator[0] + ".sz");
+    setAttr -keyable false -channelBox false ($groundZdepthLocator[0] + ".v");
+    setAttr ($groundZdepthLocator[0] + ".overrideEnabled") 1;
+    setAttr ($groundZdepthLocator[0] + ".overrideColor") 17;
+
+
+//set camera env to white
+
+    setAttr ($camera + ".backgroundColor") -type double3 1 1 1 ;
+
+//hide all lights 
+hideLights;
+
+print "zdepth created; to establish renge by moving the red locator for mesaZ and the yellow circle for groundZ ";
+
+
+}
+
+
+
+
+
+//create red green blue shaders for masking////////////////////
+global proc rgbBlackShaders(){
+string $blackShader = `shadingNode -asShader lambert`;
+setAttr ($blackShader + ".color") -type double3 0 0 0 ;
+setAttr ($blackShader + ".incandescence") -type double3 0 0 0 ;
+setAttr ($blackShader + ".diffuse") 0;
+
+string $redShader = `shadingNode -asShader lambert`;
+setAttr ($redShader + ".color") -type double3 1 0 0 ;
+setAttr ($redShader + ".incandescence") -type double3 1 0 0 ;
+
+
+string $blueShader = `shadingNode -asShader lambert`;
+setAttr ($blueShader + ".color") -type double3 0 0 1 ;
+setAttr ($blueShader + ".incandescence") -type double3 0 0 1 ;
+
+string $greenShader = `shadingNode -asShader lambert`;
+setAttr ($greenShader + ".color") -type double3 0 1 0 ;
+setAttr ($greenShader + ".incandescence") -type double3 0 1 0 ;
+}
+
+
+
+//create and apply reflective material///////////////////////////////////
+global proc chromeOut(){
+int $mirrorShaderTest = `objExists "Mirror_Shader"` ;  
+string $sel[] = `ls -sl`;
+if($mirrorShaderTest == 0) {  
+
+string $mirrorShader = `shadingNode -asShader blinn -name "Mirror_Shader"`;
+setAttr ($mirrorShader + ".color") -type double3 0 0 0 ;
+setAttr ($mirrorShader + ".incandescence") -type double3 0 0 0 ;
+setAttr ($mirrorShader + ".diffuse") 0;
+setAttr ($mirrorShader + ".eccentricity") 0.602;
+setAttr ($mirrorShader + ".specularRollOff") 1;
+setAttr ($mirrorShader + ".reflectivity") 1;
+
+string $mirrorShaderGroup = "Mirror_Shading_Group";
+sets -renderable true -noSurfaceShader true -empty -name $mirrorShaderGroup;
+defaultNavigation -connectToExisting -source $mirrorShader -destination $mirrorShaderGroup;      
+
+
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "Mirror_Shading_Group" $obj;
+
+}
+}
+
+//create and apply "use background" material//////////////////////////////////////
+global proc useBackground(){
+int $backShaderTest = `objExists "Use_Background_Shader"` ;  
+string $sel[] = `ls -sl`;
+if($backShaderTest == 0) {  
+
+string $backgroundShader = `shadingNode -asShader useBackground -name "Use_Background_Shader"`;
+setAttr ($backgroundShader + ".specularColor") -type double3 0 0 0 ;
+setAttr ($backgroundShader + ".reflectivity") 0;
+setAttr ($backgroundShader + ".reflectionLimit") 0;
+
+
+string $backgroundShaderGroup = "Use_Background_Shading_Group";
+sets -renderable true -noSurfaceShader true -empty -name $backgroundShaderGroup;
+defaultNavigation -connectToExisting -source $backgroundShader -destination $backgroundShaderGroup;      
+
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "Use_Background_Shading_Group" $obj;
+}
+}
+
+//create and apply blackOut material////////////////////////////////////////
+
+global proc blackOut(){
+int $shaderTest = `objExists "Black_Hole_Shader"` ;  
+string $sel[] = `ls -sl -type transform`;
+if($shaderTest == 0) {  
+
+string $blackOutShader = `shadingNode -asShader lambert -name "Black_Hole_Shader"`;
+setAttr ($blackOutShader + ".color") -type double3 0 0 0 ;
+setAttr ($blackOutShader + ".incandescence") -type double3 0 0 0 ;
+setAttr ($blackOutShader + ".diffuse") 0;
+setAttr ($blackOutShader + ".matteOpacityMode") 0;
+
+string $blackOutShaderGroup = "BlackHole_Shading_Group";
+sets -renderable true -noSurfaceShader true -empty -name $blackOutShaderGroup;
+defaultNavigation -connectToExisting -source $blackOutShader -destination $blackOutShaderGroup;      
+}
+
+
+for ($obj in $sel) {
+select $obj;
+sets -e -nw -forceElement "BlackHole_Shading_Group" $obj;
+}
+}
+
+//duplicate object maintaining connections and hide old peice///////////////////////////
+
+global proc dupSel(){
+string $sel[]= `ls -sl`;
+
+for ($obj in $sel){
+
+select $obj;
+string $newObjs[] = ` duplicate -rr -ic `;
+hide $obj;
+
+}
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+
+global proc createAO(){
+
+string $geo[]= `ls -type transform`;
+
+//create a lambert with color and diffuse set to white
+string $Ao_Material =  `shadingNode -asShader lambert -n "Ao_Material"`;
+setAttr ($Ao_Material + ".color") -type double3 1 1 1 ;
+setAttr ($Ao_Material + ".diffuse") 1;
+
+//create and connect Ao shader group 
+string $shaderGroup = "AO_Shading_Group";
+sets -renderable true -noSurfaceShader true -empty -name $shaderGroup;
+defaultNavigation -connectToExisting -source Ao_Material -destination $shaderGroup;      
+
+//assign the shader to all geometry using a for loop
+for ($obj in $geo) {
+select $obj;
+sets -e -nw -forceElement $shaderGroup $obj;
+}
+
+//rman settings and common tab settings
+
+//quality tab
+setAttr "defaultRenderGlobals.extensionPadding" 4;
+setAttr "renderManGlobals.rman__riattr___ShadingRate" 0.2;
+setAttr "renderManGlobals.rman__riattr___MotionFactor" 0.5;
+setAttr "renderManGlobals.rman__riopt___PixelSamples1" 4;
+setAttr "renderManGlobals.rman__torattr___rayTracing" 0;
+setAttr "renderManGlobals.rman__riopt___PixelSamples0" 4;
+setAttr "renderManGlobals.rman__riopt___PixelSamples1" 4;
+setAttr "rmanFinalOutputGlobals0.rman__riopt__Display_filterwidth1" 2;
+setAttr "rmanFinalOutputGlobals0.rman__riopt__Display_filterwidth0" 2;
+
+//Advanced Tab
+rmanSetAttr("renderManGlobals","rman__riopt__bucket_order","vertical");
+setAttr "renderManGlobals.rman__riopt__limits_bucketsize0" 64;
+setAttr "renderManGlobals.rman__riopt__limits_bucketsize1" 64;
+setAttr "renderManGlobals.rman__riopt__limits_gridsize" 512;
+setAttr "renderManGlobals.rman__riopt__limits_gridsize" 512;
+setAttr "renderManGlobals.rman__torattr___referenceFrame" 1;
+rmanSetAttr("renderManGlobals","rman__riattr__dice_referencecamera","framecamera");
+
+//passes tab -disable subsurface passes
+rmanSetAttr("rmanSSMakeBrickmapGlobals","rman__torattr___computeBehavior","0"); 
+rmanSetAttr("rmanSSDiffuseGlobals","rman__torattr___computeBehavior","0");
+rmanSetAttr("rmanSSOrganizeGlobals","rman__torattr___computeBehavior","0");
+rmanSetAttr("rmanSSRenderGlobals","rman__torattr___computeBehavior","0"); 
+// this line is erroring
+//rmanSetAttr("rmanShadowPass","rman__torattr___computeBehavior","0");
+
+//features tab
+setAttr "renderManGlobals.rman__torattr___rayTracing" 0;
+setAttr "renderManGlobals.rman__riattr__trace_samplemotion" 0;
+
+//create a new envLight since finding a way to query current Ibl is proving difficult
+string $node = `createRenderManNode RenderManEnvLightShape`;string $connectedNodes[] = `listConnections -source true -plugs false renderManGlobals.rman__EnvLight`;int $i;string $cb = `rmanGetAttrName "computeBehavior"`;for($i=0; $i < size($connectedNodes); $i++ ) {if( `attributeExists $cb $connectedNodes[$i]` ) {setAttr ($connectedNodes[$i] +"."+$cb) 0;}}string $connections[] = `listConnections -source true -plugs true renderManGlobals.rman__EnvLight`;if( size( $connections ) ) {disconnectAttr $connections renderManGlobals.rman__EnvLight;}connectAttr ($node + ".message") renderManGlobals.rman__EnvLight;
+string $node = `createRenderManNode RenderManEnvLightShape`;string $connectedNodes[] = `listConnections -source true -plugs false renderManGlobals.rman__EnvLight`;int $i;string $cb = `rmanGetAttrName "computeBehavior"`;for($i=0; $i < size($connectedNodes); $i++ ) {if( `attributeExists $cb $connectedNodes[$i]` ) {setAttr ($connectedNodes[$i] +"."+$cb) 0;}}string $connections[] = `listConnections -source true -plugs true renderManGlobals.rman__EnvLight`;if( size( $connections ) ) {disconnectAttr $connections renderManGlobals.rman__EnvLight;}connectAttr ($node + ".message") renderManGlobals.rman__EnvLight;
+
+setAttr -type "string" ($node + ".rman__EnvMap") "";
+setAttr ($node + ".rman__EnvStrength") 1;
+setAttr ($node + ".rman__EnvEmitSpecular") 1;
+setAttr ($node + ".rman__LightPrimaryVisibility") 1;
+setAttr ($node + ".rman__EnvSamples") 128;
+rmanSetAttr($node,"rman__EnvGIFalloffMode","1");
+setAttr ($node + ".rman__GDContributeRadiosity") 1;
+setAttr ($node + ".rman__EnvGIMaxVariation") 1;
+
+
+
+//renderRadiosity pass settings
+
+string $rmannode2 = `createRenderManNode pass:render:RenderRadiosity`;
+
+connectAttr ($rmannode2 + ".message") ($node + ".rman__GDMap");
+setAttr ($rmannode2 + ".rman__riattr___ShadingRate") 1;
+//hide lights except ibl
+
+string $lights[]= `ls -type light `;
+string $ibl[]= `ls "*RenderManEnvLightShape*" `;
+string $ibl_w_namespace[]= `ls "*:RenderManEnvLight*" `;
+hide $lights $ibl $ibl_w_namespace;
+showHidden $node;
+string $camera[] = ` ls -type camera "*camera*"`;
+string $camera_wNamespace[] = ` ls -type camera "*:camera*"`;
+
+
+//set camera background to white
+
+for ($obj in $camera)
+{
+setAttr ($obj + ".backgroundColor") -type double3 1 1 1 ;
+}
+
+for ($obj in $camera_wNamespace)
+{
+setAttr ($obj + ".backgroundColor") -type double3 1 1 1 ;
+
+}
+}
+global proc importRim()
+{
+file -import -type "mayaAscii" -gr -ra true -rpr "RimTexture" -options "v=0"  -pr -loadReferenceDepth "all" "W:/Production/Shader Export/RimTexture.ma";
+}
+
+//deleteing extra rederman nodes general
+global proc deleteExtraRManNodes() 
+ {
+    string $rmanFChannel[] = `ls "rmanFinalChannel*" "rmanBakeRenderChannelGlobals*" "rmanSSRenderChannelGlobals*" "rmanDeepShadowOutputGlobals*" `;
+    for ($item in $rmanFChannel)
+    {
+        if (($item != "rmanFinalChannel0") || ($item != "rmanBakeRenderChannelGlobals0")|| ($item != "rmanSSRenderChannelGlobals0") || ($item != "rmanDeepShadowOutputGlobals0")    )
+        {
+        
+        delete $item;
+        
+        }
+    
+    }
+    string $oldRman[] = `ls "oldrman*"`;
+    for ($item in $oldRman)
+    {
+    delete $item;
+    
+    }
+}
+//double sided
+    global proc doubleSidedOnOff()
+        {
+        string $selection[] = `ls -sl`;
+            for ($obj in $selection)
+            {
+                string $onOff =`getAttr ($obj + ".doubleSided")`;
+                    if ($onOff == 1) 
+                    {
+                        setAttr ($obj + ".doubleSided") 0; ///on or off??????
+                    }
+                    if ($onOff == 0)
+                    {
+                        setAttr ($obj + ".doubleSided") 1;
+                    }
+            }
+        }        
+
+global proc zDepthHelp()
+
+{
+print "\n\n\ZDepth\nstep1: Ensure that you only have one renderable camera (*check render stats)\nstep2: Select all mesas in scene, try to pick the FURTHEST mesa seen from camera LAST, this will determine the general range\nstep3: Finally select the ground. a seperate z depth material will be created for both the ground and mesas\nstep4: Press the ZDepthScene Button, this will run the script and create controllers for tweaking, they work based on distance from the Renderable Camera\nnote:Enviroment fog in the works ";
+}
+
+
+//////////////////////end procs////////////////////////////////////////////
+
+
+
+//global proc lightingToolbox()
+//{
+
+int $windowWidth = 275;
+string $lightingToolbox = `window -t $versionNum  -w $windowWidth -h 350`;
+//if (`windowPref -exists $lightingToolbox`) windowPref -remove $lightingToolbox;
+
+string $column = `columnLayout`;
+rowLayout -numberOfColumns 2
+    -columnWidth2 175 100 ;
+string $lightButton = `button
+
+
+     -width 175
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Hide all light shape nodes and IBL"
+     -label "< Hide All Lights"
+
+
+     -command "hideLights"`;
+
+string $lightsBackButton = `button
+
+
+     -width 100
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Unhide Previously Hidden Lights"
+     -label "< Unhide lights"
+
+
+     -command "unhideLights"`;     
+     
+setParent $column;
+
+
+rowLayout -numberOfColumns 6
+    -columnWidth6  20 20 20 30 40 60;
+
+
+string $redButton = `button
+  
+     -width 20
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Creates red and applies a red shader to selection (*now works on component, obj, and group level :D)"
+     -label "R"
+     -command "redShader"`;
+
+
+string $greenButton = `button
+   
+     -width 20
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Creates green and applies a green shader to selection (*now works on component, obj, and group level :D)"
+     -label "G"
+     -command "greenShader"`;
+
+
+string $blueButton = `button
+   
+     -width 20
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Creates blue and applies a blue shader to selection (*now works on component, obj, and group level :D)"
+     -label "B"
+     -command "blueShader"`;
+
+
+string $blackButton = `button
+  
+     -width 30
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Creates black and applies a black shader to selection (*now works on component, obj, and group level :D)"
+     -label "Blk"
+     -command "blackShader"`;
+
+
+string $whiteButton = `button
+  
+     -width 40
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Creates white and applies a white shader to selection (*now works on component, obj, and group level :D)"
+     -label "White"
+     -command "whiteShader"`;
+
+text "  <-- Masks!";
+
+
+      
+setParent $column;
+string $chromeButton = `button
+    
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Creates super reflective material and assigns to selected geometry (*now works on component, obj, and group level :D)"
+     -label "< Reflective Selected"
+
+
+     -command "chromeOut"`;
+setParent $column;     
+
+string $useBackgroundButton = `button
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Assigns use background matererial to selection (*now works on component, obj, and group level :D)"
+     -label "< Use Background Selected"
+
+
+     -command "useBackground"`;     
+
+setParent $column;
+
+
+
+string $blackOutButton = `button
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Turns selected geometry into a black lambert w/ matte opacity set to BlackHole (*now works on component, obj, and group level :D)"
+     -label "< BlackHole Selected"
+
+
+     -command "blackOut"`;     
+setParent $column;     
+string $rimButton = `button
+
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Imports a Rim Material from the shaderExport folder "
+     -label "< Import Rim Material"
+     -command "importRim"`;
+setParent $column;
+
+string $dupButton = `button
+      
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Duplicate selected geo keeping connections (*works only on object level)"
+     -label "< DupSpecial Selected"
+
+
+     -command "dupSel"`;     
+ setParent $column;    
+string $AoButton = `button
+
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Sets up AO for render (needs an Ibl to already be present) "
+     -label "< AO Scene"
+     -command "createAO"`;
+ setParent $column;
+ rowLayout -numberOfColumns 2
+    -columnWidth2 200 67 ;
+string $zDepthButton = `button
+
+
+     -width 205
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Sets up zdepth for easy tweaking (*see help for more info)"
+     -label "< ZDepth Scene"
+     -command "zDepth"`;
+string $zDepthhelpButton = `button
+
+
+     -width 67
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Sets up zdepth with easy tweaking (*see help for more info)"
+     -label "ZDepth Help"
+     -command "zDepthHelp"`;
+ setParent $column;
+ 
+            
+string $doubleSidedButton = `button
+
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "On off switch for Double Sided in Rman stats"
+     -label "< DoubleSided -1/0"
+     -command "doubleSidedOnOff"`;    
+  setParent $column;   
+string $deleteExtraRManNodes = `button
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Equivalent to deleting renderman nodes as well as *old renderman nodes if they are present(wont delete shadow or ss nodes)"
+     -label "< Delete Rman Nodes"
+     -command "deleteExtraRManNodes"`;                    
+
+     
+  setParent $column;
+string $addSubDivAttr = `button
+
+     -width $windowWidth
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "Adds RMan Subdivision Attribute to all shape nodes in the scene"
+     -label "< Add Subdivsion To Geo"
+     -command "addSubDivAttr"`;    
+  
+  
+  
+  setParent $column;
+  frameLayout -label "Select the corresponding radio buttons to Reference a Light Rig" ;
+        
+  //   string $row = `rowLayout`;   
+ 
+          string $importAct = `radioButtonGrp 
+         -numberOfRadioButtons 3
+         -label "Act:" -labelArray3 "I" "II" "III"`; 
+    setParent ;    
+           string $importType = `radioButtonGrp 
+         -numberOfRadioButtons 3
+         -label "Act:" -labelArray3 "Skin" "Enviroment" "Charachter"`;  
+        
+
+
+///////////////////////////////////////////   
+    
+    string $importLightRig = `button
+
+     -width 120
+     -height 34
+     -manage 1
+     -visible 1
+     -annotation "On off switch for Double Sided in Render stats"
+     -label "Reference light rigs based on selection"
+     -command "importLightRig($importAct, $importType)"`;  
+     
+     
+       
+/////////////////////////////////////////////////////////////   
+showWindow $lightingToolbox;
+
+     
+
+ 
+
+//select -r rmanSSDiffuseGlobals rmanSSMakeBrickmapGlobals rmanSSOrganizeGlobals rmanSSRenderGlobals rmanSSRenderOutputGlobals0 ;
+
+
+
+
+
+
